@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="combined_freq.js"></script>
+    <title>随机地名生成器</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .control-panel {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+        }
+        select, input[type="number"], button {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 8px 15px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            resize: vertical;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>随机地名生成器</h1>
+    
+    <div class="control-panel">
+        <div class="control-group">
+            <label for="count">生成数量:</label>
+            <select id="count">
+                <option value="20">20个</option>
+                <option value="50">50个</option>
+                <option value="100">100个</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="length">地名字数:</label>
+            <input type="number" id="length" min="2" max="5" value="3">
+        </div>
+        
+        <div class="control-group">
+            <button id="generate">生成地名</button>
+            <button id="copy">复制结果</button>
+            <button id="clear">清空</button>
+        </div>
+    </div>
+    
+    <textarea id="result" placeholder="生成的地名将显示在这里，用空格分隔..."></textarea>
+    
+    <script>
+        // 加载字频数据
+        let loading = true;
+             function getRandomChar(charsObj) {
+            const chars = Object.keys(charsObj);
+            const weights = Object.values(charsObj);
+            const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+            let random = Math.random() * totalWeight;
+            
+            for (let i = 0; i < chars.length; i++) {
+                if (random < weights[i]) return chars[i];
+                random -= weights[i];
+            }
+            return chars[0];
+        }
+
+        function generateName(length) {
+            if (length < 2) length = 2;
+            let name = getRandomChar(charData.first_char);
+            for (let i = 1; i < length - 1; i++) {
+                name += getRandomChar(charData.other_chars);
+            }
+            if (length > 1) name += getRandomChar(charData.last_char);
+            return name;
+        }
+
+        function generateNames(count, length) {
+            const names = [];
+            for (let i = 0; i < count; i++) {
+                names.push(generateName(length));
+            }
+            return names.join(' ');
+        }
+
+        // 按钮事件监听
+        document.getElementById('generate').addEventListener('click', function() {
+            if (!charData) {
+                document.getElementById('result').value = "数据尚未加载完成，请稍候...";
+                return;
+            }
+            
+            const count = parseInt(document.getElementById('count').value);
+            const length = parseInt(document.getElementById('length').value);
+            
+            if (length < 2) {
+                alert('地名字数不能少于2个字');
+                return;
+            }
+            
+            document.getElementById('result').value = "正在生成地名...";
+            
+            setTimeout(() => {
+                const names = generateNames(count, length);
+                document.getElementById('result').value = names;
+            }, 10);
+        });
+
+        document.getElementById('copy').addEventListener('click', function() {
+            const result = document.getElementById('result');
+            result.select();
+            document.execCommand('copy');
+            alert('已复制到剪贴板');
+        });
+
+        document.getElementById('clear').addEventListener('click', function() {
+            document.getElementById('result').value = '';
+        });
+    </script>
+</body>
+</html>
